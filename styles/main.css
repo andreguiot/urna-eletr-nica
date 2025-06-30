@@ -1,0 +1,176 @@
+/* Importa a fonte usada no projeto */
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;700&display=swap');
+
+/* Reset básico e configurações globais */
+* {
+  font-family: "League Spartan", sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background-color: #f0f0f0;
+}
+
+main {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* --- LAYOUT DEFINITIVO COM PORCENTAGENS --- */
+
+#urna-eletronica {
+  width: 63em;
+  aspect-ratio: 1718 / 934;
+  height: auto;
+  background-image: url("../images/design_urna_eletronica.png");
+  background-size: 100% 100%;
+  position: relative;
+}
+
+#tela {
+  position: absolute;
+  top: 11.5%;
+  left: 4%;
+  width: 48.5%;
+  height: 78%;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+}
+
+/* --- AJUSTES DE POSICIONAMENTO AQUI --- */
+#teclado {
+    position: absolute;
+    top: 42%;
+    left: 63%;
+    width: 31%;
+    height: 52%;
+    display: grid
+;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 0.8em;
+    grid-template-areas:
+        "b1 b2 b3"
+        "b4 b5 b6"
+        "b7 b8 b9"
+        ". b0 ."
+        "branco corrige confirma";
+}
+#buttonEncerrarVotacao {
+    width: 4.5%;
+    height: auto;
+    position: absolute;
+    bottom: 8.5%;  /* Abaixei um pouco o botão */
+    left: 57.5%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+/* --- ESTILOS DOS COMPONENTES INTERNOS --- */
+
+#view-content {
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.message-main { font-size: 2em; font-weight: 700; }
+.message-secondary { font-size: 1.2em; margin-top: 0.5em; }
+.message-error { font-size: 1em; color: red; margin-top: 1em; height: 1.2em; }
+
+.digits-container { display: flex; gap: 0.5em; margin-top: 1em; }
+.digit-box {
+    width: 3em;
+    height: 3em;
+    background-color: white;
+    border: 2px solid black;
+    color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+}
+
+.candidate-display {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 1em;
+    text-align: left;
+}
+.candidate-photo {
+    width: 8em;
+    height: 9em;
+    background-color: #f0f0f0;
+    border: 2px solid #333;
+    background-size: cover;
+    background-position: center;
+}
+.candidate-info p { margin-bottom: 0.5em; }
+.candidate-info span { font-weight: 700; }
+
+#teclado .button {
+  border: none;
+  border-radius: 0.35em;
+  background-color: #181D22;
+  color: white;
+  box-shadow: inset 0px -9px 0px -5px black;
+  transition: background-color 0.1s ease;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.5em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#teclado .button:active {
+  transform: translateY(2px);
+  box-shadow: inset 0px -7px 0px -5px black;
+}
+
+/* Mapeando botões para as áreas da grid */
+.btn1 { grid-area: b1; }
+.btn2 { grid-area: b2; }
+.btn3 { grid-area: b3; }
+.btn4 { grid-area: b4; }
+.btn5 { grid-area: b5; }
+.btn6 { grid-area: b6; }
+.btn7 { grid-area: b7; }
+.btn8 { grid-area: b8; }
+.btn9 { grid-area: b9; }
+.btn0 { grid-area: b0; }
+.btnBranco { grid-area: branco; font-size: 1em !important; }
+.btnCorrige { grid-area: corrige; font-size: 1em !important; }
+.btnConfirma { grid-area: confirma; font-size: 1em !important; }
+
+.btnBranco {
+  background-color: white; color: black; box-shadow: inset 0px -9px 0px -5px #B4B7C0;
+}
+.btnBranco:hover { background-color: #e6e6e6; }
+
+.btnCorrige {
+  background-color: hsl(6, 63%, 50%); box-shadow: inset 0px -9px 0px -5px hsl(6, 70%, 34%);
+}
+.btnCorrige:hover { background-color: hsl(6, 74%, 41%); }
+
+.btnConfirma {
+  background-color: hsl(130, 79%, 37%); box-shadow: inset 0px -9px 0px -5px hsl(130, 82%, 21%);
+}
+.btnConfirma:hover { background-color: hsl(130, 98%, 25%); }
+
+#buttonEncerrarVotacao:hover { transform: scale(1.1); }
+#buttonEncerrarVotacao:active { transform: scale(1.0); }
