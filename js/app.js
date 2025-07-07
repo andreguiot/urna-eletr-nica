@@ -1,13 +1,10 @@
-// js/app.js
+// O ponto de entrada que inicializa a aplicação.
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Cria a instância principal da aplicação.
-    const urna = new Urna(candidatosData);
-    
-    // 2. Cria a instância da View.
+    const eleicao = new Eleicao(chapasData);
+    const urna = new Urna(eleicao);
     const view = new UrnaView();
-    
-    // 3. Conecta tudo no Controller.
     new UrnaController(urna, view);
 
-    console.log('Aplicação Urna Eletrônica (POO) iniciada!');
+    console.log('Aplicação Urna Eletrônica por Chapas (MVC) iniciada!');
 });

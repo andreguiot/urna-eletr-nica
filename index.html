@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eleição de Representante de Turma | Colégio La Salle Abel (MVC)</title>
+    <title>Eleição de Chapas | Colégio La Salle Abel (MVC)</title>
 
-    <link rel="icon" href="./images/rede_la_salle_logo.ico">
+    <!-- O ícone pode ser um caminho relativo se você tiver o arquivo -->
+    <link rel="icon" href="images/rede_la_salle_logo.ico"> 
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
@@ -13,12 +14,9 @@
         <div id="urna-eletronica">
             <!-- Tela da Urna -->
             <div id="tela">
-                
-                <!-- Esta área será controlada pelo JavaScript (View) -->
                 <div id="view-content">
                     <!-- A View.js irá gerar o conteúdo aqui -->
                 </div>
-
             </div>
 
             <!-- Teclado da Urna -->
@@ -26,38 +24,30 @@
                 <button class="button btn1" data-value="1"><span>1</span></button>
                 <button class="button btn2" data-value="2"><span>2</span></button>
                 <button class="button btn3" data-value="3"><span>3</span></button>
-                
                 <button class="button btn4" data-value="4"><span>4</span></button>
                 <button class="button btn5" data-value="5"><span>5</span></button>
                 <button class="button btn6" data-value="6"><span>6</span></button>
-
                 <button class="button btn7" data-value="7"><span>7</span></button>
                 <button class="button btn8" data-value="8"><span>8</span></button>
                 <button class="button btn9" data-value="9"><span>9</span></button>
-
                 <button class="button btn0" data-value="0"><span>0</span></button>
-
                 <button class="button btnBranco" data-action="branco"><span>BRANCO</span></button>
                 <button class="button btnCorrige" data-action="corrige"><span>CORRIGE</span></button>
                 <button class="button btnConfirma" data-action="confirma"><span>CONFIRMA</span></button>
             </div>
 
-            <!-- Botão de Encerrar Votação -->
+            <!-- Botão de Encerrar Votação com caminho relativo -->
             <img id="buttonEncerrarVotacao" src="images/icon_encerrar.png" alt="Encerrar Votação">
         </div>
     </main>
 
-    <!-- Scripts da Aplicação -->
-    <!-- Biblioteca externa para gerar PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <!-- Nossos arquivos POO, carregados na ordem correta -->
+    <!-- Scripts da Aplicação com caminhos relativos corretos -->
     <script src="js/data.js"></script>
-    <script src="js/model.js"></script> <!-- Carrega Candidato e Turma -->
-    <script src="js/urna.js"></script> <!-- Carrega a classe Urna principal -->
+    <script src="js/model.js"></script>
+    <script src="js/urna.js"></script>
     <script src="js/view.js"></script>
     <script src="js/controller.js"></script>
-    <script src="js/app.js"></script> <!-- Inicia tudo -->
+    <script src="js/app.js"></script>
 
 </body>
 </html>

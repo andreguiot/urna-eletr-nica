@@ -1,6 +1,5 @@
-/**
- * A View é responsável por toda a manipulação do DOM.
- */
+// Responsável por toda a manipulação do DOM (desenhar na tela).
+
 class UrnaView {
     constructor() {
         this.contentDiv = document.querySelector('#view-content');
@@ -14,27 +13,18 @@ class UrnaView {
             case 'INITIAL':
                 html = this.getStartScreen();
                 break;
-            case 'SELECT_YEAR':
-                html = this.getDigitInputScreen('Digite o ano:', 1, data.error);
-                break;
-            case 'SELECT_CLASS':
-                html = this.getDigitInputScreen('Digite a turma:', 3, data.error);
-                break;
             case 'VOTING':
-                if (data.candidate) {
-                    html = this.getCandidateScreen(data.candidate, data.error);
+                if (data.chapa) {
+                    html = this.getChapaScreen(data.chapa, data.error);
                 } else {
-                    html = this.getDigitInputScreen('Digite o número do seu candidato:', 3, data.error);
+                    html = this.getDigitInputScreen('DIGITE O NÚMERO DA SUA CHAPA:', 2, data.error);
                 }
                 break;
             case 'CONFIRMED':
                 html = this.getFeedbackScreen(data.message);
                 break;
-            case 'AUTO_ELECTED':
-                html = this.getAutoElectedScreen(data.turma);
-                break;
             case 'FINISHED':
-                html = this.getFinishedScreen(data.turma);
+                html = this.getFinishedScreen(data.results);
                 break;
         }
         this.contentDiv.innerHTML = html;
@@ -55,61 +45,51 @@ class UrnaView {
                 </div>`;
     }
 
-    getCandidateScreen(candidate, error) {
+    getChapaScreen(chapa, error) {
         return `<p class="message-secondary">Seu voto para:</p>
-                <div class="candidate-display">
-                    <div class="candidate-info">
-                        <p><span>NÚMERO:</span> ${candidate.numero}</p>
-                        <p><span>NOME:</span> ${candidate.nome}</p>
+                <div class="chapa-display">
+                    <div class="chapa-info">
+                        <p><span>NÚMERO:</span> ${chapa.numero}</p>
+                        <p><span>NOME:</span> ${chapa.nome}</p>
                     </div>
-                    <div class="candidate-photo" style="background-image: url('images/${candidate.foto}')"></div>
+                    <div class="chapa-photo" style="background-image: url('${chapa.foto}')"></div>
                 </div>
+                <hr style="width:100%; margin-top: 1em; border-color: #ccc;">
+                <p class="message-secondary" style="margin-top:1em;">Aperte CONFIRMA para registrar seu voto.</p>
                 <p class="message-error">${error || ''}</p>`;
     }
 
     getFeedbackScreen(message) {
-        return `<p class="message-main">${message}</p>`;
+        return `<p class="message-main" style="font-size: 4em;">${message}</p>`;
     }
     
-    getAutoElectedScreen(turma) {
-        let candidates = turma.candidatos;
-        let message = 'Não há candidatos para esta turma.';
-        if (candidates.length > 0) {
-            const names = candidates.map(c => c.nome).join(' e ');
-            message = `Candidatos eleitos automaticamente: <br> ${names}`;
+    getFinishedScreen(results) {
+        let resultsHTML = results.resultados.map(r => `<p>${r.nome}: <strong>${r.votos} votos</strong></p>`).join('');
+        let winnerHTML = '';
+
+        if (results.empate) {
+            winnerHTML = `<p class="winner">HOUVE UM EMPATE!</p>`;
+        } else if (results.vencedora) {
+            winnerHTML = `<p class="winner">CHAPA VENCEDORA: ${results.vencedora.nome}</p>`;
+        } else {
+            winnerHTML = `<p>Nenhum voto registrado.</p>`;
         }
-        return `<p class="message-main">${message}</p>
-                <p class="message-secondary">A votação para a turma ${turma.id} está encerrada.</p>`;
-    }
-    
-    getFinishedScreen(turma) {
-        return `<p class="message-main">VOTAÇÃO ENCERRADA</p>
-                <p class="message-secondary">Turma ${turma.id}. Clique em Encerrar novamente para gerar o relatório.</p>`;
+
+        return `<div class="results-screen">
+                    <h1>VOTAÇÃO ENCERRADA</h1>
+                    ${resultsHTML}
+                    <p>Votos em Branco: <strong>${results.votosBrancos}</strong></p>
+                    <hr style="margin: 1em 0;">
+                    ${winnerHTML}
+                    <p style="text-align:center; margin-top: 2em; font-size: 1em;">Clique em Encerrar para reiniciar a votação.</p>
+                </div>`;
     }
 
-    updateDigits(digits, count) {
+    updateDigits(digits) {
         const boxes = this.contentDiv.querySelectorAll('.digit-box');
         if (!boxes.length) return;
         boxes.forEach((box, i) => {
             box.textContent = digits[i] || '';
         });
-    }
-    
-    generateResultsHTML(results, turma) {
-        let winnersHTML = results.vencedores.map(w => `<li>${w.nome} (${w.votos} votos)</li>`).join('');
-        let candidatesHTML = results.candidatosComVotos.map(c => `<li>${c.nome} (${c.numero}): ${c.votos} votos</li>`).join('');
-
-        return `<div style="padding: 20px; font-family: sans-serif;">
-                    <h1>Resultado da Eleição</h1>
-                    <p><strong>Turma:</strong> ${turma.id} | <strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
-                    <hr>
-                    <h2>Vencedores</h2>
-                    <ul>${winnersHTML || '<li>Nenhum vencedor apurado.</li>'}</ul>
-                    <hr>
-                    <h2>Contagem Geral</h2>
-                    <ul>${candidatesHTML}</ul>
-                    <p><strong>Votos em Branco:</strong> ${results.votosBrancos}</p>
-                    <p><strong>Total de Votos Válidos:</strong> ${results.totalVotosValidos}</p>
-                </div>`;
     }
 }

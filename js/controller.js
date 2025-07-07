@@ -1,8 +1,8 @@
-// js/controller.js
+// O "maestro" que conecta a View e o Model.
 
 class UrnaController {
     constructor(urna, view) {
-        this.urna = urna; // Agora recebe a instância principal da Urna
+        this.urna = urna;
         this.view = view;
 
         this.keyboard = document.querySelector('#teclado');
@@ -15,7 +15,7 @@ class UrnaController {
     }
 
     handleKeyboardClick(event) {
-        if (this.urna.state === 'FINISHED' || this.urna.state === 'AUTO_ELECTED') return;
+        if (this.urna.state === 'FINISHED') return;
 
         const target = event.target.closest('button');
         if (!target) return;
@@ -24,8 +24,7 @@ class UrnaController {
         const value = target.dataset.value;
 
         if (value) {
-            // Lógica para adicionar dígito ao `urna.currentDigits`
-            const maxDigits = this.getMaxDigits();
+            const maxDigits = 2; // Sempre 2 dígitos para as chapas
             if (this.urna.currentDigits.length < maxDigits) {
                 this.urna.currentDigits.push(value);
             }
@@ -46,28 +45,18 @@ class UrnaController {
 
         switch(this.urna.state) {
             case 'INITIAL':
-                this.urna.state = 'SELECT_YEAR';
-                break;
-            case 'SELECT_YEAR':
-                // A validação de ano seria mais complexa, checando se alguma turma existe naquele ano
-                this.urna.currentYear = enteredValue;
-                this.urna.state = 'SELECT_CLASS';
-                break;
-            case 'SELECT_CLASS':
-                if (this.urna.selectTurma(enteredValue)) {
-                    // O estado é atualizado dentro de `selectTurma`
-                } else {
-                    error = 'Turma inválida!';
-                }
+                this.urna.state = 'VOTING';
                 break;
             case 'VOTING':
-                const candidate = this.urna.activeTurma.findCandidatoByNumero(enteredValue);
-                if (candidate) {
-                    this.urna.activeTurma.registrarVoto(enteredValue);
+                const chapa = this.urna.eleicao.findChapaByNumero(enteredValue);
+                if (chapa) {
+                    this.urna.eleicao.registrarVoto(enteredValue);
                     this.flashMessage('VOTO CONFIRMADO');
-                    return;
+                    return; // Evita limpar os dígitos e atualizar a view desnecessariamente
+                } else if (enteredValue === '') {
+                    error = 'Digite o número da chapa.';
                 } else {
-                    error = 'Número inválido!';
+                    error = 'Número de chapa inválido!';
                 }
                 break;
         }
@@ -78,21 +67,19 @@ class UrnaController {
     
     handleWhiteVote() {
         if (this.urna.state === 'VOTING') {
-            this.urna.activeTurma.registrarVotoBranco();
+            this.urna.eleicao.registrarVotoBranco();
             this.flashMessage('VOTO EM BRANCO');
         }
     }
     
     handleEndVoteClick() {
         if (this.urna.state === 'FINISHED') {
-            this.generatePDF();
+            // Se já terminou, o botão agora reinicia a votação
+            this.urna.reset();
+            this.updateView();
         } else {
-            if (this.urna.activeTurma) {
-                this.urna.state = 'FINISHED';
-                this.updateView();
-            } else {
-                alert("Nenhuma turma ativa para encerrar.");
-            }
+            this.urna.state = 'FINISHED';
+            this.updateView();
         }
     }
 
@@ -100,28 +87,22 @@ class UrnaController {
         const state = this.urna.state;
         const data = { error };
 
-        // Prepara os dados que a View precisa para renderizar
         switch(state) {
             case 'VOTING':
                 const number = this.urna.currentDigits.join('');
                 if (number) {
-                    data.candidate = this.urna.activeTurma.findCandidatoByNumero(number);
+                    data.chapa = this.urna.eleicao.findChapaByNumero(number);
                 }
                 break;
-            case 'AUTO_ELECTED':
             case 'FINISHED':
-                data.turma = this.urna.activeTurma;
+                data.results = this.urna.eleicao.apurarResultados();
                 break;
         }
 
         this.view.render(state, data);
-        this.view.updateDigits(this.urna.currentDigits, this.getMaxDigits());
-    }
-    
-    getMaxDigits() {
-        if (this.urna.state === 'SELECT_YEAR') return 1;
-        if (this.urna.state === 'SELECT_CLASS' || this.urna.state === 'VOTING') return 3;
-        return 0;
+        if (state === 'VOTING') {
+            this.view.updateDigits(this.urna.currentDigits);
+        }
     }
     
     flashMessage(message) {
@@ -130,9 +111,5 @@ class UrnaController {
             this.urna.currentDigits = [];
             this.updateView();
         }, 1500);
-    }
-    
-    generatePDF() {
-        // ... a lógica de gerar PDF usa `this.urna.activeTurma.apurarResultados()`
     }
 }

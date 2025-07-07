@@ -1,34 +1,25 @@
-const candidatosData = {
-    "1": { // 1º ano
-        "111": [ // Turma 111M
-            { nome: "Candidata Ana", numero: "111", foto: "candidato1.png", sexo: "F" },
-            { nome: "Candidato Bruno", numero: "112", foto: "candidato3.png", sexo: "M" },
-            { nome: "Candidata Carla", numero: "113", foto: "candidato2.png", sexo: "F" },
-        ],
-        "112": [ // Turma 112M
-            { nome: "Candidato Davi", numero: "121", foto: "candidato5.png", sexo: "M" },
-            { nome: "Candidata Elisa", numero: "122", foto: "candidato4.png", sexo: "F" },
-        ],
+// Arquivo de dados mestre da eleição
+
+// 1. Define as duas chapas que concorrem na eleição.
+const chapasData = {
+    "10": { 
+        nome: "CHAPA AMARELA", 
+        numero: "10", 
+        foto: "images/chapa_amarela.png" // Usaremos um caminho local
     },
-    "2": { // 2º ano
-        "121": [ // Turma 121M
-            { nome: "Candidato Felipe", numero: "211", foto: "candidato3.png", sexo: "M" },
-            { nome: "Candidata Gabriela", numero: "212", foto: "candidato1.png", sexo: "F" },
-            { nome: "Candidato Heitor", numero: "213", foto: "candidato5.png", sexo: "M" },
-        ],
-    },
-    "6": {
-        "161": [
-            { nome: "Candidato Isac", numero: "611", foto: "candidato5.png", sexo: "M"},
-            { nome: "Candidata Joana", numero: "612", foto: "candidato2.png", sexo: "F"}
-        ],
-        "162": [
-            { nome: "Candidata Laura", numero: "621", foto: "candidato4.png", sexo: "F"}
-        ],
-        "163": [
-            { nome: "Candidato Marcos", numero: "631", foto: "candidato3.png", sexo: "M"},
-            { nome: "Candidato Natan", numero: "632", foto: "candidato5.png", sexo: "M"}
-        ],
-        "164": [ /* Cenário: Sem candidatos */ ]
+    "20": { 
+        nome: "CHAPA AZUL",   
+        numero: "20", 
+        foto: "images/chapa_azul.png" // Usaremos um caminho local
     }
 };
+
+// 2. Define a lista de todas as turmas válidas para a votação.
+// Adicione ou remova turmas conforme necessário.
+const turmasValidas = [
+    '181', '182', '183', '184','185', '186', 
+    '191', '192', '193', '194', '195', '196',
+    '211', '212', '213', '214', '215', '216', 
+    '221', '222', '223', '224',
+    '231', '232', '233', '234', '235'
+];

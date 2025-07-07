@@ -1,65 +1,42 @@
-// js/urna.js
-
 /**
- * A classe principal que gerencia o estado geral da urna.
- * Funciona como o "Model" principal da aplicação.
+ * A classe que gerencia o estado geral da urna (a máquina de estados).
  */
 class Urna {
-    constructor(candidatosData) {
-        this.turmas = new Map(); // Estrutura: '111' => objeto Turma
-        this._loadData(candidatosData);
-
-        this.state = 'INITIAL'; // INITIAL, SELECT_YEAR, SELECT_CLASS, VOTING, FINISHED
-        this.activeTurma = null;
+    constructor(eleicao) {
+        this.eleicao = eleicao;
+        
+        // A máquina de estados agora inclui a seleção de turma
+        this.state = 'INITIAL'; // INITIAL, SELECT_CLASS, VOTING, FINISHED
+        
+        this.activeTurma = null; // Guarda a instância da turma que está votando
         this.currentDigits = [];
     }
 
-    /**
-     * Carrega os dados brutos e os transforma em objetos Turma e Candidato.
-     * @param {object} candidatosData
-     */
-    _loadData(candidatosData) {
-        for (const ano in candidatosData) {
-            for (const idTurma in candidatosData[ano]) {
-                const turma = new Turma(idTurma, ano);
-                const dadosCandidatos = candidatosData[ano][idTurma];
-
-                for (const dadosCandidato of dadosCandidatos) {
-                    const candidato = new Candidato(
-                        dadosCandidato.nome,
-                        dadosCandidato.numero,
-                        dadosCandidato.sexo,
-                        dadosCandidato.foto
-                    );
-                    turma.addCandidato(candidato);
-                }
-                this.turmas.set(idTurma, turma);
-            }
+    // Seleciona uma turma para iniciar a votação
+    selectTurma(idTurma) {
+        if (this.eleicao.isTurmaValida(idTurma)) {
+            this.activeTurma = this.eleicao.getTurma(idTurma);
+            this.state = 'VOTING';
+            console.log(`Turma ${idTurma} selecionada.`);
+            return true;
         }
-        console.log(`${this.turmas.size} turmas carregadas.`);
+        console.error(`Tentativa de selecionar turma inválida: ${idTurma}`);
+        return false;
+    }
+    
+    // Libera a turma ativa, para que uma nova possa ser selecionada
+    releaseTurma() {
+        console.log(`Turma ${this.activeTurma.id} liberada.`);
+        this.activeTurma = null;
+        this.state = 'SELECT_CLASS';
     }
 
-    // A lógica de `handleConfirm`, `addDigit`, etc., viria aqui,
-    // mas agora ela DELEGA as chamadas para o `this.activeTurma`.
-    // Ex: this.activeTurma.registrarVoto(numero);
-    // Para manter o exemplo claro, vamos focar na estrutura.
-    // O controller.js vai preencher essa lógica de delegação.
-    
     reset() {
         this.state = 'INITIAL';
         this.activeTurma = null;
         this.currentDigits = [];
-        // Nota: Os votos são mantidos dentro de cada objeto Turma.
-        // Se quisermos limpar os votos, teríamos que iterar por `this.turmas`
-        // e chamar um método `turma.resetVotos()`.
-    }
-
-    selectTurma(idTurma) {
-        if (this.turmas.has(idTurma)) {
-            this.activeTurma = this.turmas.get(idTurma);
-            this.state = this.activeTurma.isAutoElected() ? 'AUTO_ELECTED' : 'VOTING';
-            return true;
-        }
-        return false;
+        // A lógica para resetar os votos de fato ficaria dentro da classe Eleicao,
+        // se necessário, para não perdermos os dados sem querer.
+        console.log("Urna reiniciada para o estado inicial.");
     }
 }
