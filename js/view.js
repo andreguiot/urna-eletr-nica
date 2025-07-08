@@ -9,13 +9,21 @@ class UrnaView {
         this.contentDiv.innerHTML = '';
         let html;
 
+        let headerHTML = '';
+        if (data.activeTurma) {
+            headerHTML = `<p class="active-class-header">TURMA: ${data.activeTurma.id}</p>`;
+        }
+
         switch (state) {
             case 'INITIAL':
                 html = this.getStartScreen();
                 break;
+            case 'SELECT_CLASS':
+                html = this.getDigitInputScreen('DIGITE O CÓDIGO DA TURMA:', 3, data.error);
+                break;
             case 'VOTING':
                 if (data.chapa) {
-                    html = this.getChapaScreen(data.chapa, data.error);
+                    html = this.getChapaScreen(data.chapa);
                 } else {
                     html = this.getDigitInputScreen('DIGITE O NÚMERO DA SUA CHAPA:', 2, data.error);
                 }
@@ -24,10 +32,12 @@ class UrnaView {
                 html = this.getFeedbackScreen(data.message);
                 break;
             case 'FINISHED':
-                html = this.getFinishedScreen(data.results);
+                html = this.getFinishedScreen(data.generalResults);
                 break;
+            default:
+                html = `<p>Erro: Estado desconhecido.</p>`;
         }
-        this.contentDiv.innerHTML = html;
+        this.contentDiv.innerHTML = headerHTML + html;
     }
     
     getStartScreen() {
@@ -38,58 +48,111 @@ class UrnaView {
     
     getDigitInputScreen(message, digitCount, error) {
         let boxes = Array(digitCount).fill('<div class="digit-box"></div>').join('');
-        return `<div>
+        return `<div class="input-screen">
                     <p class="message-main">${message}</p>
                     <div class="digits-container">${boxes}</div>
                     <p class="message-error">${error || ''}</p>
                 </div>`;
     }
 
-    getChapaScreen(chapa, error) {
-        return `<p class="message-secondary">Seu voto para:</p>
-                <div class="chapa-display">
-                    <div class="chapa-info">
-                        <p><span>NÚMERO:</span> ${chapa.numero}</p>
-                        <p><span>NOME:</span> ${chapa.nome}</p>
+    getChapaScreen(chapa) {
+        return `<div class="chapa-screen">
+                    <p class="message-secondary">Seu voto para:</p>
+                    <div class="chapa-display">
+                        <div class="chapa-info">
+                            <p><span>NÚMERO:</span> ${chapa.numero}</p>
+                            <p><span>NOME:</span> ${chapa.nome}</p>
+                        </div>
+                        <div class.chapa-photo" style="background-image: url('${chapa.foto}')"></div>
                     </div>
-                    <div class="chapa-photo" style="background-image: url('${chapa.foto}')"></div>
-                </div>
-                <hr style="width:100%; margin-top: 1em; border-color: #ccc;">
-                <p class="message-secondary" style="margin-top:1em;">Aperte CONFIRMA para registrar seu voto.</p>
-                <p class="message-error">${error || ''}</p>`;
-    }
-
-    getFeedbackScreen(message) {
-        return `<p class="message-main" style="font-size: 4em;">${message}</p>`;
-    }
-    
-    getFinishedScreen(results) {
-        let resultsHTML = results.resultados.map(r => `<p>${r.nome}: <strong>${r.votos} votos</strong></p>`).join('');
-        let winnerHTML = '';
-
-        if (results.empate) {
-            winnerHTML = `<p class="winner">HOUVE UM EMPATE!</p>`;
-        } else if (results.vencedora) {
-            winnerHTML = `<p class="winner">CHAPA VENCEDORA: ${results.vencedora.nome}</p>`;
-        } else {
-            winnerHTML = `<p>Nenhum voto registrado.</p>`;
-        }
-
-        return `<div class="results-screen">
-                    <h1>VOTAÇÃO ENCERRADA</h1>
-                    ${resultsHTML}
-                    <p>Votos em Branco: <strong>${results.votosBrancos}</strong></p>
-                    <hr style="margin: 1em 0;">
-                    ${winnerHTML}
-                    <p style="text-align:center; margin-top: 2em; font-size: 1em;">Clique em Encerrar para reiniciar a votação.</p>
+                    <hr style="width:100%; margin-top: 1em; border-color: #ccc;">
+                    <p class="message-secondary" style="margin-top:1em;">Aperte CONFIRMA para registrar seu voto.</p>
+                    <p class="message-secondary" style="font-size: 1em;">Aperte CORRIGE para voltar à seleção de turma.</p>
                 </div>`;
     }
 
-    updateDigits(digits) {
+    getFeedbackScreen(message) {
+        return `<p class="message-main feedback-screen">${message}</p>`;
+    }
+    
+    getFinishedScreen(results) {
+        let tableRows = results.map(r => `
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.votosChapa10}</td>
+                <td>${r.votosChapa20}</td>
+                <td>${r.votosBrancos}</td>
+                <td><strong>${r.total}</strong></td>
+            </tr>
+        `).join('');
+
+        return `<div class="results-screen">
+                    <h1>RESULTADO GERAL</h1>
+                    <div class="results-table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Turma</th>
+                                    <th>Chapa 10</th>
+                                    <th>Chapa 20</th>
+                                    <th>Brancos</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="message-secondary">Clique em Encerrar para gerar o PDF.</p>
+                </div>`;
+    }
+
+    updateDigits(digits, count) {
         const boxes = this.contentDiv.querySelectorAll('.digit-box');
-        if (!boxes.length) return;
+        if (!boxes.length || boxes.length !== count) return; 
         boxes.forEach((box, i) => {
             box.textContent = digits[i] || '';
         });
+    }
+
+    generateResultsPDFHTML(results) {
+        let tableRows = results.map(r => `
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.votosChapa10}</td>
+                <td>${r.votosChapa20}</td>
+                <td>${r.votosBrancos}</td>
+                <td>${r.total}</td>
+            </tr>
+        `).join('');
+
+        const dataAtual = new Date().toLocaleString('pt-BR');
+
+        return `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <header style="text-align: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 20px;">
+                    <h2>Relatório de Votação - Grêmio Estudantil</h2>
+                    <p>Gerado em: ${dataAtual}</p>
+                </header>
+                <main>
+                    <h3>Resultado Consolidado por Turma</h3>
+                    <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="padding: 8px; border: 1px solid #ddd;">Turma</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Votos Chapa Amarela (10)</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Votos Chapa Azul (20)</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Votos Brancos</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Total de Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </main>
+            </div>
+        `;
     }
 }

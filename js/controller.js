@@ -22,21 +22,35 @@ class UrnaController {
 
         const action = target.dataset.action;
         const value = target.dataset.value;
+        let error = null;
 
         if (value) {
-            const maxDigits = 2; // Sempre 2 dígitos para as chapas
+            const maxDigits = this.getMaxDigitsForState();
             if (this.urna.currentDigits.length < maxDigits) {
                 this.urna.currentDigits.push(value);
             }
         } else if (action === 'corrige') {
-            this.urna.currentDigits = [];
+            this.handleCorrection();
         } else if (action === 'confirma') {
-            this.handleConfirm();
+            const result = this.handleConfirm();
+            if (result && result.flash) {
+                return;
+            }
+            error = result ? result.error : null;
         } else if (action === 'branco') {
             this.handleWhiteVote();
+            return;
         }
         
-        this.updateView();
+        this.updateView({ error });
+    }
+    
+    handleCorrection() {
+        if (this.urna.state === 'VOTING' && this.urna.currentDigits.length === 0) {
+            this.urna.releaseTurma();
+        } else {
+            this.urna.currentDigits = [];
+        }
     }
 
     handleConfirm() {
@@ -45,16 +59,20 @@ class UrnaController {
 
         switch(this.urna.state) {
             case 'INITIAL':
-                this.urna.state = 'VOTING';
+                this.urna.state = 'SELECT_CLASS';
+                break;
+            case 'SELECT_CLASS':
+                if (!this.urna.selectTurma(enteredValue)) {
+                    error = 'Turma inválida!';
+                }
                 break;
             case 'VOTING':
                 const chapa = this.urna.eleicao.findChapaByNumero(enteredValue);
                 if (chapa) {
-                    this.urna.eleicao.registrarVoto(enteredValue);
+                    this.urna.activeTurma.registrarVoto(enteredValue);
+                    this.urna.eleicao.saveState(); // <-- AQUI! SALVA O ESTADO
                     this.flashMessage('VOTO CONFIRMADO');
-                    return; // Evita limpar os dígitos e atualizar a view desnecessariamente
-                } else if (enteredValue === '') {
-                    error = 'Digite o número da chapa.';
+                    return { flash: true }; 
                 } else {
                     error = 'Número de chapa inválido!';
                 }
@@ -62,51 +80,71 @@ class UrnaController {
         }
 
         this.urna.currentDigits = [];
-        this.updateView(error);
+        return { error };
     }
     
     handleWhiteVote() {
         if (this.urna.state === 'VOTING') {
-            this.urna.eleicao.registrarVotoBranco();
+            this.urna.activeTurma.registrarVotoBranco();
+            this.urna.eleicao.saveState(); // <-- AQUI! SALVA O ESTADO
             this.flashMessage('VOTO EM BRANCO');
         }
     }
     
     handleEndVoteClick() {
         if (this.urna.state === 'FINISHED') {
-            // Se já terminou, o botão agora reinicia a votação
-            this.urna.reset();
-            this.updateView();
+            this.generatePDF();
         } else {
             this.urna.state = 'FINISHED';
             this.updateView();
         }
     }
 
-    updateView(error = null) {
-        const state = this.urna.state;
-        const data = { error };
+    generatePDF() {
+        const results = this.urna.eleicao.apurarResultadosGerais();
+        const reportContent = this.view.generateResultsPDFHTML(results);
 
-        switch(state) {
-            case 'VOTING':
-                const number = this.urna.currentDigits.join('');
-                if (number) {
-                    data.chapa = this.urna.eleicao.findChapaByNumero(number);
-                }
-                break;
-            case 'FINISHED':
-                data.results = this.urna.eleicao.apurarResultados();
-                break;
+        const options = {
+            margin:       1,
+            filename:     `resultado_eleicao_gremio_${new Date().toISOString().slice(0,10)}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().from(reportContent).set(options).save();
+    }
+
+    updateView(data = {}) {
+        const state = this.urna.state;
+        
+        data.state = state;
+        data.activeTurma = this.urna.activeTurma;
+
+        if (state === 'VOTING') {
+            const number = this.urna.currentDigits.join('');
+            if (number) {
+                data.chapa = this.urna.eleicao.findChapaByNumero(number);
+            }
+        } else if (state === 'FINISHED') {
+            data.generalResults = this.urna.eleicao.apurarResultadosGerais();
         }
 
         this.view.render(state, data);
-        if (state === 'VOTING') {
-            this.view.updateDigits(this.urna.currentDigits);
+        
+        if (state === 'SELECT_CLASS' || state === 'VOTING') {
+            this.view.updateDigits(this.urna.currentDigits, this.getMaxDigitsForState());
         }
     }
     
+    getMaxDigitsForState() {
+        if (this.urna.state === 'SELECT_CLASS') return 3;
+        if (this.urna.state === 'VOTING') return 2;
+        return 0;
+    }
+    
     flashMessage(message) {
-        this.view.render('CONFIRMED', { message });
+        this.view.render('CONFIRMED', { message, activeTurma: this.urna.activeTurma });
         setTimeout(() => {
             this.urna.currentDigits = [];
             this.updateView();

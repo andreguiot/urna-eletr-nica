@@ -27,7 +27,6 @@ main {
     width: 100%;
     max-width: 63em;
     aspect-ratio: 1718 / 934;
-    /* Caminho relativo corrigido: ../ para "subir" um nível da pasta styles */
     background-image: url("../images/design_urna_eletronica.png"); 
     background-size: 100% 100%;
     background-repeat: no-repeat;
@@ -43,9 +42,8 @@ main {
     padding: 1.5em;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    text-align: center;
 }
 
 #teclado {
@@ -88,11 +86,43 @@ main {
     align-items: center;
 }
 
-.message-main { font-size: 2.2em; font-weight: 700; }
-.message-secondary { font-size: 1.3em; margin-top: 0.5em; }
-.message-error { font-size: 1.1em; color: red; margin-top: 1em; height: 1.2em; font-weight: bold; }
+.active-class-header {
+    position: absolute;
+    top: 1em;
+    left: 1.5em;
+    font-size: 1.2em;
+    font-weight: 700;
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0.2em 0.5em;
+    border-radius: 5px;
+}
 
-.digits-container { display: flex; gap: 0.5em; margin-top: 1em; }
+.message-main { font-size: 2.2em; font-weight: 700; text-align: center; }
+.message-secondary { font-size: 1.3em; margin-top: 0.5em; text-align: center; }
+.message-error { font-size: 1.1em; color: red; margin-top: 1em; height: 1.2em; font-weight: bold; text-align: center; }
+
+/*
+ * REGRA CORRIGIDA E SIMPLIFICADA
+ * Este é o contêiner para as telas de entrada de dígitos.
+ * O seu pai (#view-content) já o centraliza.
+ * Apenas precisamos garantir que o conteúdo dele fique organizado.
+*/
+.input-screen {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; /* Faz com que ocupe o espaço vertical disponível */
+}
+
+/* O contêiner dos quadrados dos dígitos */
+.digits-container { 
+    display: flex; 
+    gap: 0.5em; 
+    margin-top: 1em; 
+}
+
 .digit-box {
     width: 3.5em;
     height: 4.5em;
@@ -106,7 +136,6 @@ main {
     border-radius: 5px;
 }
 
-/* Estilo para a tela de confirmação da Chapa */
 .chapa-display {
     width: 100%;
     display: flex;
@@ -122,28 +151,16 @@ main {
     background-size: cover;
     background-position: center;
     border-radius: 8px;
+    background-color: #fff;
 }
 .chapa-info p { margin-bottom: 0.5em; font-size: 1.5em; }
 .chapa-info span { font-weight: 700; }
 
-/* Estilo para a tela de resultados */
-.results-screen {
-    text-align: left;
-    width: 100%;
-}
-.results-screen h1 {
-    font-size: 2em;
-    text-align: center;
-    margin-bottom: 1em;
-}
-.results-screen p {
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
-}
-.results-screen .winner {
-    font-weight: 700;
-    color: #006400;
-}
+.results-screen h1 { font-size: 1.8em; text-align: center; }
+.results-table-container { width: 100%; max-height: 20em; overflow-y: auto; margin: 1em 0; }
+.results-screen table { width: 100%; border-collapse: collapse; }
+.results-screen th, .results-screen td { padding: 0.5em; border: 1px solid #ccc; text-align: center; }
+.results-screen th { background-color: #f2f2f2; }
 
 /* Estilos do Teclado */
 #teclado .button {

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eleição de Chapas | Colégio La Salle Abel (MVC)</title>
 
-    <!-- O ícone pode ser um caminho relativo se você tiver o arquivo -->
     <link rel="icon" href="images/rede_la_salle_logo.ico"> 
     <link rel="stylesheet" href="styles/main.css">
 </head>
@@ -36,12 +35,15 @@
                 <button class="button btnConfirma" data-action="confirma"><span>CONFIRMA</span></button>
             </div>
 
-            <!-- Botão de Encerrar Votação com caminho relativo -->
+            <!-- Botão de Encerrar Votação -->
             <img id="buttonEncerrarVotacao" src="images/icon_encerrar.png" alt="Encerrar Votação">
         </div>
     </main>
 
-    <!-- Scripts da Aplicação com caminhos relativos corretos -->
+    <!-- Biblioteca externa para gerar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Nossos arquivos, carregados na ordem correta -->
     <script src="js/data.js"></script>
     <script src="js/model.js"></script>
     <script src="js/urna.js"></script>
