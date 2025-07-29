@@ -52,7 +52,6 @@ class Turma {
 
 /**
  * Gerencia a eleição como um todo, incluindo todas as turmas e chapas.
- * AGORA TAMBÉM GERENCIA O SALVAMENTO E CARREGAMENTO DO ESTADO.
  */
 class Eleicao {
     constructor(chapasData, turmasValidas) {
@@ -107,14 +106,38 @@ class Eleicao {
         return resultados;
     }
 
-    // --- NOVOS MÉTODOS PARA PERSISTÊNCIA ---
-
     /**
-     * Salva o estado atual da votação no localStorage do navegador.
+     * ATUALIZADO: Apura o resultado final de toda a eleição.
      */
+    apurarResultadoFinal() {
+        const totais = {
+            votosChapa10: 0,
+            votosChapa20: 0,
+            votosBrancos: 0,
+            votosTotais: 0,
+            vencedor: ''
+        };
+
+        this.turmas.forEach(turma => {
+            totais.votosChapa10 += turma.votos.get('10');
+            totais.votosChapa20 += turma.votos.get('20');
+            totais.votosBrancos += turma.votosBrancos;
+        });
+
+        totais.votosTotais = totais.votosChapa10 + totais.votosChapa20 + totais.votosBrancos;
+
+        if (totais.votosChapa10 > totais.votosChapa20) {
+            totais.vencedor = 'CHAPA AMARELA (10)';
+        } else if (totais.votosChapa20 > totais.votosChapa10) {
+            totais.vencedor = 'CHAPA AZUL (20)';
+        } else {
+            totais.vencedor = 'EMPATE TÉCNICO';
+        }
+
+        return totais;
+    }
+
     saveState() {
-        // O objeto Map não é salvo corretamente com JSON.stringify.
-        // Precisamos convertê-lo para um Array antes de salvar.
         const turmasArray = Array.from(this.turmas.entries()).map(([id, turma]) => {
             return [id, {
                 id: turma.id,
@@ -135,16 +158,12 @@ class Eleicao {
         }
     }
 
-    /**
-     * Carrega o estado da votação do localStorage.
-     */
     loadState() {
         try {
             const savedStateJSON = localStorage.getItem('eleicaoState');
             if (savedStateJSON) {
                 const savedState = JSON.parse(savedStateJSON);
                 
-                // Reconstrói o Map de turmas a partir do Array salvo
                 this.turmas = new Map(
                     savedState.turmas.map(([id, turmaData]) => {
                         const turma = new Turma(id);
@@ -155,12 +174,10 @@ class Eleicao {
                 );
                 console.log('Estado da eleição carregado do localStorage.');
             } else {
-                // Se não houver estado salvo, começa uma nova eleição
                 this._loadTurmasFromScratch();
             }
         } catch (e) {
             console.error('Erro ao carregar o estado da eleição:', e);
-            // Em caso de erro (ex: JSON corrompido), começa do zero por segurança
             this._loadTurmasFromScratch();
         }
     }

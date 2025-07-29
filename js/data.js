@@ -2,15 +2,17 @@
 
 // 1. Define as duas chapas que concorrem na eleição.
 const chapasData = {
-    "10": { 
-        nome: "CHAPA AMARELA", 
-        numero: "10", 
-        foto: "images/chapa_amarela.png" // Usaremos um caminho local
+    "10": {
+        nome: "CHAPA AMARELA",
+        numero: "10",
+        foto: "images/chapa_amarela.png", // Podemos manter a foto, não vai atrapalhar
+        cor: '#FFC107' // Cor Amarela (Material Design Amber)
     },
-    "20": { 
-        nome: "CHAPA AZUL",   
-        numero: "20", 
-        foto: "images/chapa_azul.png" // Usaremos um caminho local
+    "20": {
+        nome: "CHAPA AZUL",
+        numero: "20",
+        foto: "images/chapa_azul.png",
+        cor: '#0D47A1' // Cor Azul (Material Design Blue 900)
     }
 };
 

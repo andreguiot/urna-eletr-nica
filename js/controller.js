@@ -4,6 +4,8 @@ class UrnaController {
     constructor(urna, view) {
         this.urna = urna;
         this.view = view;
+        
+        this.apiUrl = "https://script.google.com/macros/s/AKfycbwK3mbgjHBh5tqPL9rse1j7kLuklWYZymZe4cxUSVft8pfhXJXLX3FweoYeBTl0En6tIw/exec";
 
         this.keyboard = document.querySelector('#teclado');
         this.endButton = document.querySelector('#buttonEncerrarVotacao');
@@ -12,6 +14,30 @@ class UrnaController {
         this.endButton.addEventListener('click', this.handleEndVoteClick.bind(this));
 
         this.updateView();
+    }
+
+    sendVoteToCloud(turmaId, voto) {
+        if (!this.apiUrl || this.apiUrl === "COLE_A_URL_DO_SEU_APP_DA_WEB_AQUI") {
+            console.warn("API URL não configurada. O voto não será enviado para a nuvem.");
+            return;
+        }
+
+        const data = {
+            turma: turmaId,
+            voto: voto
+        };
+
+        fetch(this.apiUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => console.log("Sucesso ao enviar para a nuvem (resposta inicial).", response))
+        .catch(error => console.error('Erro ao enviar voto para a nuvem:', error));
     }
 
     handleKeyboardClick(event) {
@@ -69,8 +95,10 @@ class UrnaController {
             case 'VOTING':
                 const chapa = this.urna.eleicao.findChapaByNumero(enteredValue);
                 if (chapa) {
+                    const turmaId = this.urna.activeTurma.id;
                     this.urna.activeTurma.registrarVoto(enteredValue);
-                    this.urna.eleicao.saveState(); // <-- AQUI! SALVA O ESTADO
+                    this.urna.eleicao.saveState();
+                    this.sendVoteToCloud(turmaId, `Chapa ${enteredValue}`);
                     this.flashMessage('VOTO CONFIRMADO');
                     return { flash: true }; 
                 } else {
@@ -85,8 +113,10 @@ class UrnaController {
     
     handleWhiteVote() {
         if (this.urna.state === 'VOTING') {
+            const turmaId = this.urna.activeTurma.id;
             this.urna.activeTurma.registrarVotoBranco();
-            this.urna.eleicao.saveState(); // <-- AQUI! SALVA O ESTADO
+            this.urna.eleicao.saveState();
+            this.sendVoteToCloud(turmaId, "Branco");
             this.flashMessage('VOTO EM BRANCO');
         }
     }
@@ -100,9 +130,13 @@ class UrnaController {
         }
     }
 
+    /**
+     * ATUALIZADO: Agora busca o resultado final e o passa para a view.
+     */
     generatePDF() {
         const results = this.urna.eleicao.apurarResultadosGerais();
-        const reportContent = this.view.generateResultsPDFHTML(results);
+        const finalResult = this.urna.eleicao.apurarResultadoFinal();
+        const reportContent = this.view.generateResultsPDFHTML(results, finalResult);
 
         const options = {
             margin:       1,
@@ -127,7 +161,7 @@ class UrnaController {
                 data.chapa = this.urna.eleicao.findChapaByNumero(number);
             }
         } else if (state === 'FINISHED') {
-            data.generalResults = this.urna.eleicao.apurarResultadosGerais();
+            // Não precisamos mais passar os resultados para a tela final
         }
 
         this.view.render(state, data);

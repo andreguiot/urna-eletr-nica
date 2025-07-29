@@ -32,7 +32,7 @@ class UrnaView {
                 html = this.getFeedbackScreen(data.message);
                 break;
             case 'FINISHED':
-                html = this.getFinishedScreen(data.generalResults);
+                html = this.getFinishedScreen();
                 break;
             default:
                 html = `<p>Erro: Estado desconhecido.</p>`;
@@ -56,55 +56,32 @@ class UrnaView {
     }
 
     getChapaScreen(chapa) {
-        return `<div class="chapa-screen">
-                    <p class="message-secondary">Seu voto para:</p>
-                    <div class="chapa-display">
-                        <div class="chapa-info">
-                            <p><span>NÚMERO:</span> ${chapa.numero}</p>
-                            <p><span>NOME:</span> ${chapa.nome}</p>
-                        </div>
-                        <div class.chapa-photo" style="background-image: url('${chapa.foto}')"></div>
+    return `<div class="chapa-screen">
+                <p class="message-secondary">Seu voto para:</p>
+                <div class="chapa-display">
+                    <div class="chapa-info">
+                        <p><span>NÚMERO:</span> ${chapa.numero}</p>
+                        <p><span>NOME:</span> ${chapa.nome}</p>
                     </div>
-                    <hr style="width:100%; margin-top: 1em; border-color: #ccc;">
-                    <p class="message-secondary" style="margin-top:1em;">Aperte CONFIRMA para registrar seu voto.</p>
-                    <p class="message-secondary" style="font-size: 1em;">Aperte CORRIGE para voltar à seleção de turma.</p>
-                </div>`;
-    }
+                    <div class="chapa-photo" data-chapa-numero="${chapa.numero}"></div>
+                </div>
+                <hr style="width:100%; margin-top: 1em; border-color: #ccc;">
+                <p class="message-secondary" style="margin-top:1em;">Aperte CONFIRMA para registrar seu voto.</p>
+                <p class="message-secondary" style="font-size: 1em;">Aperte CORRIGE para voltar à seleção de turma.</p>
+            </div>`;
+}
 
     getFeedbackScreen(message) {
         return `<p class="message-main feedback-screen">${message}</p>`;
     }
     
-    getFinishedScreen(results) {
-        let tableRows = results.map(r => `
-            <tr>
-                <td>${r.id}</td>
-                <td>${r.votosChapa10}</td>
-                <td>${r.votosChapa20}</td>
-                <td>${r.votosBrancos}</td>
-                <td><strong>${r.total}</strong></td>
-            </tr>
-        `).join('');
-
-        return `<div class="results-screen">
-                    <h1>RESULTADO GERAL</h1>
-                    <div class="results-table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Turma</th>
-                                    <th>Chapa 10</th>
-                                    <th>Chapa 20</th>
-                                    <th>Brancos</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
-                        </table>
-                    </div>
-                    <p class="message-secondary">Clique em Encerrar para gerar o PDF.</p>
+    /**
+     * ATUALIZADO: A tela de finalização agora é apenas uma mensagem.
+     */
+    getFinishedScreen() {
+        return `<div class="finished-screen">
+                    <p class="message-main">VOTAÇÃO ENCERRADA</p>
+                    <p class="message-secondary" style="margin-top: 2em;">Clique no botão vermelho para gerar o relatório final em PDF.</p>
                 </div>`;
     }
 
@@ -116,7 +93,10 @@ class UrnaView {
         });
     }
 
-    generateResultsPDFHTML(results) {
+    /**
+     * ATUALIZADO: Agora também recebe o resultado final para incluir no PDF.
+     */
+    generateResultsPDFHTML(results, finalResult) {
         let tableRows = results.map(r => `
             <tr>
                 <td>${r.id}</td>
@@ -128,6 +108,18 @@ class UrnaView {
         `).join('');
 
         const dataAtual = new Date().toLocaleString('pt-BR');
+
+        const finalResultHTML = `
+            <footer style="text-align: center; border-top: 2px solid #ccc; padding-top: 20px; margin-top: 30px;">
+                <h3>Resultado Final da Eleição</h3>
+                <p>Total de Votos Chapa Amarela (10): <strong>${finalResult.votosChapa10}</strong></p>
+                <p>Total de Votos Chapa Azul (20): <strong>${finalResult.votosChapa20}</strong></p>
+                <p>Total de Votos Brancos: <strong>${finalResult.votosBrancos}</strong></p>
+                <h4 style="margin-top: 15px; padding: 10px; background-color: #f2f2f2; border-radius: 5px; font-size: 1.2em;">
+                    VENCEDOR: ${finalResult.vencedor}
+                </h4>
+            </footer>
+        `;
 
         return `
             <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -152,6 +144,7 @@ class UrnaView {
                         </tbody>
                     </table>
                 </main>
+                ${finalResultHTML}
             </div>
         `;
     }
